@@ -16,7 +16,8 @@ int iAdminSystem;
 
 ConVar
     cvShowInfo,
-    cvChannel;
+    cvChannel,
+    cvStream;
 
 char sFile[256];
 
@@ -53,7 +54,7 @@ public Plugin myinfo =
 	name = "[BotMiX] Admin action info",
 	author = "Nek.'a 2x2 || vk.com/nekromio || t.me/sourcepwn ",
 	description = "Отправляет данные о блокировках админами",
-	version = "1.0.1 105",
+	version = "1.0.1 106",
 	url = "ggwp.site || vk.com/nekromio || t.me/sourcepwn "
 };
 
@@ -61,6 +62,7 @@ public void OnPluginStart()
 {
     cvShowInfo = CreateConVar("sm_botmix_aa_show_info", "1", "При отключении показывает только 3 последние цифры", _, true, _, true, 1.0);
     cvChannel = CreateConVar("sm_botmix_aa_channel", "2", "Номер канала от 0 до 9", _, true, 0.0, true, 9.0);
+    cvStream = CreateConVar("sm_botmix_aa_stream", "0", "Номер Топика (stream) от 0 до 9 | Для ТГ, где есть в чате топики", _, true, 0.0, true, 9.0);
 
     BuildPath(Path_SM, sFile, sizeof(sFile), "logs/botmix_aa.log");
 
@@ -97,22 +99,23 @@ void SendMessage(const char[] message, const char[] platform = "")
         return;
     }
 
-    KeyValues send = new KeyValues("BOTMIX_SendMessageBulk");
-    send.SetString("ids",       ids);
-    send.SetString("alias",     aliases);
-    send.SetString("chat_name", names);
-    send.SetString("message",   message);
-    send.SetNum("channel", cvChannel.IntValue);
-    send.SetNum("type_send", 1);
+    KeyValues kv = new KeyValues("BOTMIX_SendMessageBulk");
+    kv.SetString("ids",       ids);
+    kv.SetString("alias",     aliases);
+    kv.SetString("chat_name", names);
+    kv.SetString("message",   message);
+    kv.SetNum("channel", cvChannel.IntValue);
+    kv.SetNum("type_send", 1);
+    kv.SetNum("stream", cvStream.IntValue);
 
     if (platform[0])
-        send.SetString("platform", platform);
+        kv.SetString("platform", platform);
 
     /* LogToFileOnly(sFile, "[BotMix] Отправка сообщения в %d чатов: \"%s\"",
         CountChar(ids, ',' ) + 1, message); */
 
-    BotMix_TriggerEvent(BOTMIX_REQUEST_SEND_MESSAGE_CHATS, send);
-    delete send;
+    BotMix_TriggerEvent(BOTMIX_REQUEST_SEND_MESSAGE_CHATS, kv);
+    delete kv;
 }
 
 stock int CountChar(const char[] s, char c)
